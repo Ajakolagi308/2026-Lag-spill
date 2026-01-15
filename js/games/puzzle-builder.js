@@ -1,0 +1,20 @@
+const PuzzleBuilder = {
+  running: false,
+  paused: false,
+  
+  init(gameData) {
+    console.log('Puzzle Builder game initialized');
+  },
+  
+  start() {
+    this.running = true;
+    console.log('Puzzle Builder game started - coming soon!');
+  },
+  
+  pause() { this.paused = true; },
+  resume() { this.paused = false; },
+  restart() { this.start(); },
+  stop() { this.running = false; }
+};
+
+export default PuzzleBuilder;

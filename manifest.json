@@ -1,0 +1,25 @@
+{
+  "name": "Barans Spillverksted",
+  "short_name": "Spillverksted",
+  "description": "Lag dine egne spill! Et kreativt spillverksted for barn.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#FFE5EC",
+  "theme_color": "#FF6B9D",
+  "categories": ["games", "education", "kids"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
