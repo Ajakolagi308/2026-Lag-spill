@@ -11,6 +11,7 @@ const DragDrop = {
   startY: 0,
   offsetX: 0,
   offsetY: 0,
+  draggedObject: null,
 
   /**
    * Start dragging a block from the palette
@@ -24,11 +25,25 @@ const DragDrop = {
     // Create ghost element
     this.createGhost(block, clientX, clientY);
 
+    // Bind event handlers with correct context
+    this._handleDragMove = (e) => {
+      if (!this.isDragging) return;
+      const x = e.clientX || (e.touches && e.touches[0].clientX);
+      const y = e.clientY || (e.touches && e.touches[0].clientY);
+      this.updateGhostPosition(x, y);
+    };
+
+    this._handleDragEnd = (e) => {
+      const x = e.clientX || (e.changedTouches && e.changedTouches[0].clientX);
+      const y = e.clientY || (e.changedTouches && e.changedTouches[0].clientY);
+      this.endDrag(x, y);
+    };
+
     // Add event listeners for drag
-    document.addEventListener('mousemove', this.handleDragMove);
-    document.addEventListener('mouseup', this.handleDragEnd);
-    document.addEventListener('touchmove', this.handleTouchMove, { passive: false });
-    document.addEventListener('touchend', this.handleTouchEnd);
+    document.addEventListener('mousemove', this._handleDragMove);
+    document.addEventListener('mouseup', this._handleDragEnd);
+    document.addEventListener('touchmove', this._handleDragMove, { passive: false });
+    document.addEventListener('touchend', this._handleDragEnd);
   },
 
   /**
@@ -38,10 +53,17 @@ const DragDrop = {
     this.ghostElement = document.createElement('div');
     this.ghostElement.className = 'block-ghost';
     this.ghostElement.innerHTML = `<span style="font-size: 48px;">${block.icon}</span>`;
-    this.ghostElement.style.position = 'fixed';
-    this.ghostElement.style.pointerEvents = 'none';
-    this.ghostElement.style.zIndex = '1000';
-    this.ghostElement.style.opacity = '0.8';
+    this.ghostElement.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      z-index: 10000;
+      opacity: 0.8;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.9);
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    `;
 
     this.updateGhostPosition(x, y);
     document.body.appendChild(this.ghostElement);
@@ -51,43 +73,10 @@ const DragDrop = {
    * Update ghost element position
    */
   updateGhostPosition(x, y) {
-    if (this.ghostElement) {
-      this.ghostElement.style.left = (x - 24) + 'px';
-      this.ghostElement.style.top = (y - 24) + 'px';
+    if (this.ghostElement && x && y) {
+      this.ghostElement.style.left = x + 'px';
+      this.ghostElement.style.top = y + 'px';
     }
-  },
-
-  /**
-   * Handle mouse move during drag
-   */
-  handleDragMove: function(e) {
-    if (!DragDrop.isDragging) return;
-    DragDrop.updateGhostPosition(e.clientX, e.clientY);
-  },
-
-  /**
-   * Handle touch move during drag
-   */
-  handleTouchMove: function(e) {
-    if (!DragDrop.isDragging) return;
-    e.preventDefault();
-    const touch = e.touches[0];
-    DragDrop.updateGhostPosition(touch.clientX, touch.clientY);
-  },
-
-  /**
-   * Handle drag end (mouse)
-   */
-  handleDragEnd: function(e) {
-    DragDrop.endDrag(e.clientX, e.clientY);
-  },
-
-  /**
-   * Handle drag end (touch)
-   */
-  handleTouchEnd: function(e) {
-    const touch = e.changedTouches[0];
-    DragDrop.endDrag(touch.clientX, touch.clientY);
   },
 
   /**
@@ -104,24 +93,45 @@ const DragDrop = {
 
     // Check if dropped on canvas
     const canvas = document.getElementById('builder-canvas');
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect();
+    const container = document.getElementById('canvas-container');
 
+    if (canvas && container && clientX && clientY) {
+      const rect = container.getBoundingClientRect();
+
+      // Check if within canvas bounds
       if (clientX >= rect.left && clientX <= rect.right &&
           clientY >= rect.top && clientY <= rect.bottom) {
-        // Dropped on canvas - place block
+
+        // Calculate position relative to canvas
         const canvasX = clientX - rect.left;
         const canvasY = clientY - rect.top;
 
-        // Convert to world coordinates
-        const worldPos = CanvasManager.screenToWorld(canvasX, canvasY);
+        // Convert to world coordinates if CanvasManager is available
+        let worldX = canvasX;
+        let worldY = canvasY;
+
+        if (typeof CanvasManager !== 'undefined' && CanvasManager.screenToWorld) {
+          const worldPos = CanvasManager.screenToWorld(canvasX, canvasY);
+          worldX = worldPos.x;
+          worldY = worldPos.y;
+        }
 
         // Snap to grid
-        const snapped = CanvasManager.snapToGrid(worldPos.x, worldPos.y);
+        if (typeof CanvasManager !== 'undefined' && CanvasManager.snapToGrid) {
+          const snapped = CanvasManager.snapToGrid(worldX, worldY);
+          worldX = snapped.x;
+          worldY = snapped.y;
+        }
 
         // Place the block
-        BuilderCore.placeBlock(this.draggedBlock, snapped.x, snapped.y);
-        SoundManager.play('tap');
+        if (typeof BuilderCore !== 'undefined' && this.draggedBlock) {
+          BuilderCore.placeBlock(this.draggedBlock, worldX, worldY);
+          console.log('Block placed at:', worldX, worldY);
+
+          if (typeof SoundManager !== 'undefined') {
+            SoundManager.play('tap');
+          }
+        }
       }
     }
 
@@ -130,48 +140,50 @@ const DragDrop = {
     this.draggedBlock = null;
 
     // Remove event listeners
-    document.removeEventListener('mousemove', this.handleDragMove);
-    document.removeEventListener('mouseup', this.handleDragEnd);
-    document.removeEventListener('touchmove', this.handleTouchMove);
-    document.removeEventListener('touchend', this.handleTouchEnd);
+    document.removeEventListener('mousemove', this._handleDragMove);
+    document.removeEventListener('mouseup', this._handleDragEnd);
+    document.removeEventListener('touchmove', this._handleDragMove);
+    document.removeEventListener('touchend', this._handleDragEnd);
   },
 
   /**
    * Start dragging an existing object on canvas
    */
   startObjectDrag(object, clientX, clientY) {
-    const canvas = document.getElementById('builder-canvas');
-    if (!canvas) return;
+    const container = document.getElementById('canvas-container');
+    if (!container) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const worldPos = CanvasManager.screenToWorld(clientX - rect.left, clientY - rect.top);
+    const rect = container.getBoundingClientRect();
 
-    this.offsetX = worldPos.x - object.x;
-    this.offsetY = worldPos.y - object.y;
+    let worldX = clientX - rect.left;
+    let worldY = clientY - rect.top;
+
+    if (typeof CanvasManager !== 'undefined' && CanvasManager.screenToWorld) {
+      const worldPos = CanvasManager.screenToWorld(worldX, worldY);
+      worldX = worldPos.x;
+      worldY = worldPos.y;
+    }
+
+    this.offsetX = worldX - object.x;
+    this.offsetY = worldY - object.y;
 
     this.isDragging = true;
     this.draggedObject = object;
 
-    document.addEventListener('mousemove', this.handleObjectDragMove);
-    document.addEventListener('mouseup', this.handleObjectDragEnd);
-    document.addEventListener('touchmove', this.handleObjectTouchMove, { passive: false });
-    document.addEventListener('touchend', this.handleObjectTouchEnd);
-  },
+    this._handleObjectDragMove = (e) => {
+      const x = e.clientX || (e.touches && e.touches[0].clientX);
+      const y = e.clientY || (e.touches && e.touches[0].clientY);
+      this.updateObjectPosition(x, y);
+    };
 
-  /**
-   * Handle object drag move
-   */
-  handleObjectDragMove: function(e) {
-    DragDrop.updateObjectPosition(e.clientX, e.clientY);
-  },
+    this._handleObjectDragEnd = () => {
+      this.endObjectDrag();
+    };
 
-  /**
-   * Handle object touch move
-   */
-  handleObjectTouchMove: function(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    DragDrop.updateObjectPosition(touch.clientX, touch.clientY);
+    document.addEventListener('mousemove', this._handleObjectDragMove);
+    document.addEventListener('mouseup', this._handleObjectDragEnd);
+    document.addEventListener('touchmove', this._handleObjectDragMove, { passive: false });
+    document.addEventListener('touchend', this._handleObjectDragEnd);
   },
 
   /**
@@ -180,46 +192,51 @@ const DragDrop = {
   updateObjectPosition(clientX, clientY) {
     if (!this.isDragging || !this.draggedObject) return;
 
-    const canvas = document.getElementById('builder-canvas');
-    if (!canvas) return;
+    const container = document.getElementById('canvas-container');
+    if (!container) return;
 
-    const rect = canvas.getBoundingClientRect();
-    const worldPos = CanvasManager.screenToWorld(clientX - rect.left, clientY - rect.top);
+    const rect = container.getBoundingClientRect();
+    let canvasX = clientX - rect.left;
+    let canvasY = clientY - rect.top;
+
+    let worldX = canvasX;
+    let worldY = canvasY;
+
+    if (typeof CanvasManager !== 'undefined' && CanvasManager.screenToWorld) {
+      const worldPos = CanvasManager.screenToWorld(canvasX, canvasY);
+      worldX = worldPos.x;
+      worldY = worldPos.y;
+    }
 
     // Update object position (with offset)
-    let newX = worldPos.x - this.offsetX;
-    let newY = worldPos.y - this.offsetY;
+    let newX = worldX - this.offsetX;
+    let newY = worldY - this.offsetY;
 
     // Snap to grid if enabled
-    const snapped = CanvasManager.snapToGrid(newX, newY);
-    this.draggedObject.x = snapped.x;
-    this.draggedObject.y = snapped.y;
+    if (typeof CanvasManager !== 'undefined' && CanvasManager.snapToGrid) {
+      const snapped = CanvasManager.snapToGrid(newX, newY);
+      newX = snapped.x;
+      newY = snapped.y;
+    }
+
+    this.draggedObject.x = newX;
+    this.draggedObject.y = newY;
 
     // Clamp to canvas bounds
-    this.draggedObject.x = Math.max(0, Math.min(
-      CanvasManager.canvasWidth - this.draggedObject.width,
-      this.draggedObject.x
-    ));
-    this.draggedObject.y = Math.max(0, Math.min(
-      CanvasManager.canvasHeight - this.draggedObject.height,
-      this.draggedObject.y
-    ));
+    if (typeof CanvasManager !== 'undefined') {
+      this.draggedObject.x = Math.max(0, Math.min(
+        CanvasManager.canvasWidth - this.draggedObject.width,
+        this.draggedObject.x
+      ));
+      this.draggedObject.y = Math.max(0, Math.min(
+        CanvasManager.canvasHeight - this.draggedObject.height,
+        this.draggedObject.y
+      ));
+    }
 
-    CanvasManager.render();
-  },
-
-  /**
-   * Handle object drag end
-   */
-  handleObjectDragEnd: function(e) {
-    DragDrop.endObjectDrag();
-  },
-
-  /**
-   * Handle object touch end
-   */
-  handleObjectTouchEnd: function(e) {
-    DragDrop.endObjectDrag();
+    if (typeof CanvasManager !== 'undefined') {
+      CanvasManager.render();
+    }
   },
 
   /**
@@ -229,9 +246,9 @@ const DragDrop = {
     this.isDragging = false;
     this.draggedObject = null;
 
-    document.removeEventListener('mousemove', this.handleObjectDragMove);
-    document.removeEventListener('mouseup', this.handleObjectDragEnd);
-    document.removeEventListener('touchmove', this.handleObjectTouchMove);
-    document.removeEventListener('touchend', this.handleObjectTouchEnd);
+    document.removeEventListener('mousemove', this._handleObjectDragMove);
+    document.removeEventListener('mouseup', this._handleObjectDragEnd);
+    document.removeEventListener('touchmove', this._handleObjectDragMove);
+    document.removeEventListener('touchend', this._handleObjectDragEnd);
   }
 };
