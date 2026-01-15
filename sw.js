@@ -1,32 +1,32 @@
 // Service Worker for Barans Spillverksted
 const CACHE_NAME = 'spillverksted-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/css/main.css',
-  '/css/game-selector.css',
-  '/css/builder.css',
-  '/css/play-mode.css',
-  '/css/animations.css',
-  '/js/app.js',
-  '/js/game-selector.js',
-  '/js/character-picker.js',
-  '/js/builder/builder-core.js',
-  '/js/builder/drag-drop.js',
-  '/js/builder/drawing-tools.js',
-  '/js/builder/block-palette.js',
-  '/js/builder/canvas-manager.js',
-  '/js/physics/physics-engine.js',
-  '/js/physics/collision.js',
-  '/js/physics/particles.js',
-  '/js/utils/storage.js',
-  '/js/utils/touch-handler.js',
-  '/js/utils/sound-manager.js',
-  '/js/utils/image-utils.js',
-  '/js/data/blocks.js',
-  '/js/data/characters.js',
-  '/js/data/achievements.js'
+  './',
+  'index.html',
+  'manifest.json',
+  'css/main.css',
+  'css/game-selector.css',
+  'css/builder.css',
+  'css/play-mode.css',
+  'css/animations.css',
+  'js/app.js',
+  'js/game-selector.js',
+  'js/character-picker.js',
+  'js/builder/builder-core.js',
+  'js/builder/drag-drop.js',
+  'js/builder/drawing-tools.js',
+  'js/builder/block-palette.js',
+  'js/builder/canvas-manager.js',
+  'js/physics/physics-engine.js',
+  'js/physics/collision.js',
+  'js/physics/particles.js',
+  'js/utils/storage.js',
+  'js/utils/touch-handler.js',
+  'js/utils/sound-manager.js',
+  'js/utils/image-utils.js',
+  'js/data/blocks.js',
+  'js/data/characters.js',
+  'js/data/achievements.js'
 ];
 
 // Install event - cache all assets
@@ -90,7 +90,7 @@ self.addEventListener('fetch', event => {
       })
       .catch(() => {
         // Return offline fallback if available
-        return caches.match('/index.html');
+        return caches.match('index.html');
       })
   );
 });
