@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B9D"/>
+      <stop offset="100%" style="stop-color:#9B6BFF"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="192" height="192" rx="32" fill="url(#bg)"/>
+  <!-- Game controller shape -->
+  <g transform="translate(32, 48)">
+    <!-- Controller body -->
+    <rect x="16" y="32" width="96" height="48" rx="12" fill="white"/>
+    <!-- D-pad -->
+    <rect x="28" y="44" width="8" height="24" rx="2" fill="#FF6B9D"/>
+    <rect x="20" y="52" width="24" height="8" rx="2" fill="#FF6B9D"/>
+    <!-- Buttons -->
+    <circle cx="92" cy="48" r="6" fill="#6BB5FF"/>
+    <circle cx="108" cy="56" r="6" fill="#6BFFB8"/>
+    <circle cx="92" cy="64" r="6" fill="#FFD66B"/>
+    <!-- Star (creativity) -->
+    <polygon points="64,16 68,28 80,28 70,36 74,48 64,40 54,48 58,36 48,28 60,28" fill="#FFD66B"/>
+  </g>
+  <!-- Sparkles -->
+  <circle cx="28" cy="28" r="4" fill="white" opacity="0.8"/>
+  <circle cx="164" cy="40" r="3" fill="white" opacity="0.6"/>
+  <circle cx="156" cy="156" r="5" fill="white" opacity="0.7"/>
+  <circle cx="40" cy="160" r="3" fill="white" opacity="0.5"/>
+</svg>

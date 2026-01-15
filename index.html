@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Spillverksted">
+  <meta name="theme-color" content="#FF6B9D">
+  <meta name="description" content="Lag dine egne spill! Et kreativt spillverksted for barn.">
+
+  <title>Barans Spillverksted</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/icon-96.png">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/game-selector.css">
+  <link rel="stylesheet" href="/css/builder.css">
+  <link rel="stylesheet" href="/css/play-mode.css">
+  <link rel="stylesheet" href="/css/animations.css">
+</head>
+<body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="screen active">
+    <div class="loading-content">
+      <div class="loading-icon">🎮</div>
+      <h1>Barans Spillverksted</h1>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+      <p class="loading-text">Laster inn...</p>
+    </div>
+  </div>
+
+  <!-- Main Menu Screen -->
+  <div id="main-menu" class="screen">
+    <header class="main-header">
+      <h1 class="title">🏰 Barans Spillverksted 🏰</h1>
+      <p class="subtitle">Velg hva du vil lage i dag!</p>
+    </header>
+
+    <main class="game-categories">
+      <!-- Categories will be populated by JavaScript -->
+    </main>
+
+    <footer class="main-footer">
+      <button class="btn btn-large btn-saved-games" id="btn-saved-games">
+        <span class="btn-icon">📂</span>
+        <span class="btn-text">Mine Lagrede Spill</span>
+      </button>
+      <button class="btn btn-settings" id="btn-settings">
+        <span class="btn-icon">⚙️</span>
+      </button>
+    </footer>
+  </div>
+
+  <!-- Character Picker Screen -->
+  <div id="character-picker" class="screen">
+    <header class="screen-header">
+      <button class="btn btn-back" id="btn-back-character">⬅️</button>
+      <h2>Velg din helt!</h2>
+      <div class="spacer"></div>
+    </header>
+
+    <main class="character-content">
+      <div class="character-grid" id="character-grid">
+        <!-- Characters populated by JavaScript -->
+      </div>
+
+      <div class="upload-section">
+        <p>Eller last opp ditt eget bilde!</p>
+        <button class="btn btn-large btn-upload" id="btn-upload-character">
+          <span class="btn-icon">📷</span>
+          <span class="btn-text">Last opp bilde</span>
+        </button>
+        <input type="file" id="character-upload" accept="image/*" hidden>
+      </div>
+
+      <div class="selected-character" id="selected-character" hidden>
+        <h3>Din helt:</h3>
+        <div class="character-preview"></div>
+        <input type="text" id="character-name" placeholder="Gi helten et navn!" maxlength="20">
+      </div>
+    </main>
+
+    <footer class="screen-footer">
+      <button class="btn btn-large btn-primary" id="btn-start-building" disabled>
+        <span class="btn-text">Start å bygge!</span>
+        <span class="btn-icon">🚀</span>
+      </button>
+    </footer>
+  </div>
+
+  <!-- Builder Screen -->
+  <div id="builder" class="screen">
+    <header class="builder-header">
+      <button class="btn btn-back" id="btn-back-builder">⬅️</button>
+      <h2 id="builder-title">Bygg ditt spill!</h2>
+      <div class="builder-actions">
+        <button class="btn btn-test" id="btn-test-game">
+          <span class="btn-icon">▶️</span>
+          <span class="btn-text">Test</span>
+        </button>
+        <button class="btn btn-save" id="btn-save-game">
+          <span class="btn-icon">💾</span>
+          <span class="btn-text">Lagre</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="builder-main">
+      <div class="canvas-container" id="canvas-container">
+        <canvas id="builder-canvas"></canvas>
+      </div>
+
+      <div class="builder-sidebar">
+        <div class="tool-buttons">
+          <button class="btn btn-tool active" data-tool="select">
+            <span class="btn-icon">👆</span>
+            <span class="btn-label">Velg</span>
+          </button>
+          <button class="btn btn-tool" data-tool="draw">
+            <span class="btn-icon">✏️</span>
+            <span class="btn-label">Tegn</span>
+          </button>
+          <button class="btn btn-tool" data-tool="shape">
+            <span class="btn-icon">⬜</span>
+            <span class="btn-label">Form</span>
+          </button>
+          <button class="btn btn-tool" data-tool="erase">
+            <span class="btn-icon">🧽</span>
+            <span class="btn-label">Slett</span>
+          </button>
+        </div>
+
+        <div class="color-picker">
+          <div class="color-option selected" data-color="#FF6B9D" style="background:#FF6B9D"></div>
+          <div class="color-option" data-color="#9B6BFF" style="background:#9B6BFF"></div>
+          <div class="color-option" data-color="#6BB5FF" style="background:#6BB5FF"></div>
+          <div class="color-option" data-color="#6BFFB8" style="background:#6BFFB8"></div>
+          <div class="color-option" data-color="#FFD66B" style="background:#FFD66B"></div>
+          <div class="color-option" data-color="#8B4513" style="background:#8B4513"></div>
+          <div class="color-option" data-color="#333333" style="background:#333333"></div>
+          <div class="color-option" data-color="#FFFFFF" style="background:#FFFFFF; border:2px solid #ccc"></div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="block-palette" id="block-palette">
+      <!-- Blocks populated by JavaScript based on game type -->
+    </footer>
+  </div>
+
+  <!-- Play Mode Screen -->
+  <div id="play-mode" class="screen">
+    <header class="play-header">
+      <div class="game-stats">
+        <span class="stat coins"><span class="icon">🪙</span> <span id="stat-coins">0</span></span>
+        <span class="stat stars"><span class="icon">⭐</span> <span id="stat-stars">0/0</span></span>
+        <span class="stat lives" id="stat-lives">❤️❤️❤️</span>
+      </div>
+      <button class="btn btn-pause" id="btn-pause">⏸️</button>
+    </header>
+
+    <main class="game-area">
+      <canvas id="game-canvas"></canvas>
+    </main>
+
+    <footer class="game-controls" id="game-controls">
+      <!-- Controls populated by JavaScript based on game type -->
+    </footer>
+  </div>
+
+  <!-- Pause Modal -->
+  <div id="pause-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h2>Pause</h2>
+      <button class="btn btn-large btn-primary" id="btn-resume">
+        <span class="btn-icon">▶️</span>
+        <span class="btn-text">Fortsett</span>
+      </button>
+      <button class="btn btn-large" id="btn-restart">
+        <span class="btn-icon">🔄</span>
+        <span class="btn-text">Start på nytt</span>
+      </button>
+      <button class="btn btn-large" id="btn-exit-game">
+        <span class="btn-icon">🚪</span>
+        <span class="btn-text">Tilbake til byggeren</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Win Modal -->
+  <div id="win-modal" class="modal" hidden>
+    <div class="modal-content celebration">
+      <div class="confetti-container"></div>
+      <h2>🎉 Gratulerer! 🎉</h2>
+      <p class="win-message">Du klarte det!</p>
+      <div class="final-stats">
+        <div class="stat-item">
+          <span class="stat-icon">🪙</span>
+          <span class="stat-value" id="final-coins">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon">⭐</span>
+          <span class="stat-value" id="final-stars">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon">⏱️</span>
+          <span class="stat-value" id="final-time">0:00</span>
+        </div>
+      </div>
+      <button class="btn btn-large btn-primary" id="btn-play-again">
+        <span class="btn-icon">🔄</span>
+        <span class="btn-text">Spill igjen</span>
+      </button>
+      <button class="btn btn-large" id="btn-back-to-builder">
+        <span class="btn-icon">🏠</span>
+        <span class="btn-text">Tilbake</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Saved Games Screen -->
+  <div id="saved-games" class="screen">
+    <header class="screen-header">
+      <button class="btn btn-back" id="btn-back-saved">⬅️</button>
+      <h2>Mine Lagrede Spill</h2>
+      <div class="spacer"></div>
+    </header>
+
+    <main class="saved-games-content">
+      <div class="saved-games-grid" id="saved-games-grid">
+        <!-- Saved games populated by JavaScript -->
+      </div>
+      <div class="empty-state" id="empty-saved-games" hidden>
+        <span class="empty-icon">📭</span>
+        <p>Du har ingen lagrede spill ennå!</p>
+        <p>Lag ditt første spill nå!</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h2>⚙️ Innstillinger</h2>
+
+      <div class="setting-item">
+        <label>🔊 Musikk</label>
+        <input type="range" id="music-volume" min="0" max="100" value="70">
+      </div>
+
+      <div class="setting-item">
+        <label>🔔 Lydeffekter</label>
+        <input type="range" id="sfx-volume" min="0" max="100" value="100">
+      </div>
+
+      <div class="setting-item">
+        <label>📳 Vibrasjon</label>
+        <label class="toggle">
+          <input type="checkbox" id="haptic-feedback" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <button class="btn btn-large btn-primary" id="btn-close-settings">
+        <span class="btn-text">Lukk</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Achievement Toast -->
+  <div id="achievement-toast" class="achievement-toast" hidden>
+    <div class="achievement-icon"></div>
+    <div class="achievement-info">
+      <h3 class="achievement-title"></h3>
+      <p class="achievement-desc"></p>
+    </div>
+  </div>
+
+  <!-- Save Game Modal -->
+  <div id="save-modal" class="modal" hidden>
+    <div class="modal-content">
+      <h2>💾 Lagre spillet</h2>
+      <input type="text" id="game-name-input" placeholder="Gi spillet et navn!" maxlength="30">
+      <button class="btn btn-large btn-primary" id="btn-confirm-save">
+        <span class="btn-icon">💾</span>
+        <span class="btn-text">Lagre</span>
+      </button>
+      <button class="btn btn-large" id="btn-cancel-save">
+        <span class="btn-text">Avbryt</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/data/blocks.js"></script>
+  <script src="/js/data/characters.js"></script>
+  <script src="/js/data/achievements.js"></script>
+  <script src="/js/utils/storage.js"></script>
+  <script src="/js/utils/touch-handler.js"></script>
+  <script src="/js/utils/sound-manager.js"></script>
+  <script src="/js/utils/image-utils.js"></script>
+  <script src="/js/physics/physics-engine.js"></script>
+  <script src="/js/physics/collision.js"></script>
+  <script src="/js/physics/particles.js"></script>
+  <script src="/js/builder/canvas-manager.js"></script>
+  <script src="/js/builder/drag-drop.js"></script>
+  <script src="/js/builder/drawing-tools.js"></script>
+  <script src="/js/builder/block-palette.js"></script>
+  <script src="/js/builder/builder-core.js"></script>
+  <script src="/js/game-selector.js"></script>
+  <script src="/js/character-picker.js"></script>
+  <script src="/js/games/platformer.js"></script>
+  <script src="/js/games/racing.js"></script>
+  <script src="/js/games/marble-run.js"></script>
+  <script src="/js/games/maze.js"></script>
+  <script src="/js/games/angry-birds.js"></script>
+  <script src="/js/games/catcher.js"></script>
+  <script src="/js/games/ski-slalom.js"></script>
+  <script src="/js/games/ski-langrenn.js"></script>
+  <script src="/js/games/ski-hopp.js"></script>
+  <script src="/js/games/ski-skiskyting.js"></script>
+  <script src="/js/games/ski-freestyle.js"></script>
+  <script src="/js/games/paint-create.js"></script>
+  <script src="/js/games/music-maker.js"></script>
+  <script src="/js/games/puzzle-builder.js"></script>
+  <script src="/js/games/space-adventure.js"></script>
+  <script src="/js/games/memory-match.js"></script>
+  <script src="/js/games/fishing-game.js"></script>
+  <script src="/js/games/sorting-game.js"></script>
+  <script src="/js/games/number-adventure.js"></script>
+  <script src="/js/games/letter-hunt.js"></script>
+  <script src="/js/games/bike-track.js"></script>
+  <script src="/js/games/swimming-race.js"></script>
+  <script src="/js/games/football.js"></script>
+  <script src="/js/games/trampoline.js"></script>
+  <script src="/js/games/dragon-flight.js"></script>
+  <script src="/js/games/underwater.js"></script>
+  <script src="/js/games/fairy-tale.js"></script>
+  <script src="/js/games/dinosaur-world.js"></script>
+  <script src="/js/games/city-builder.js"></script>
+  <script src="/js/games/robot-workshop.js"></script>
+  <script src="/js/app.js"></script>
+
+  <!-- Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registered:', registration.scope);
+          })
+          .catch(error => {
+            console.log('ServiceWorker registration failed:', error);
+          });
+      });
+    }
+  </script>
+</body>
+</html>
